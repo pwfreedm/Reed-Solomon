@@ -18,7 +18,8 @@ fn generate_x_values (length: usize, seed: u64) -> Vec<i8>
     let mut rng = SmallRng::seed_from_u64(seed);
     for _ in 0..length
     {
-        output.push(rng.gen_range(0..i8::MAX));
+        //single digit numbers to prevent higher powers from going too out of control
+        output.push(rng.gen_range(0..10));
     }
     output
 }
