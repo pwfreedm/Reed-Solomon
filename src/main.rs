@@ -1,11 +1,15 @@
+use encryption::encrypt;
 use rand::rngs::{SmallRng};
 use rand::{SeedableRng, Rng};
 
 mod interface;
 mod encryption;
+mod pub_data;
+
 fn main() {
     let raw_data = interface::get_text_to_encode();
     let private_keys = generate_x_values (raw_data.len(), 0); 
+    encrypt(&raw_data, &private_keys);
 }
 
 /** Generates the 'private keys' of the encryption. These are x coordinates of points on a line
