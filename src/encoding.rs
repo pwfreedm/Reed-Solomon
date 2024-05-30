@@ -9,7 +9,7 @@ pub struct PublicData
 
 impl PublicData
 {
-    pub fn new (msg_bytes: &mut Vec<u8>, private_keys: &Vec<i8>) -> Self
+    pub fn new (msg_bytes: &mut Vec<u8>, private_keys: &mut Vec<u8>) -> Self
     {        
         let mut msg: Vec<DVector<u128>> = PublicData::fill_msg(msg_bytes);
         let coefficients: Vec<DMatrix<u128>> = PublicData::fill_coefficient_matrices(private_keys);
@@ -42,18 +42,47 @@ impl PublicData
         out
     }
 
-    fn fill_coefficient_matrices (private_keys: &Vec<i8>) -> Vec<DMatrix<u128>>
+    fn fill_coefficient_matrices (private_keys: &mut Vec<u8>) -> Vec<DMatrix<u128>>
     {
+        println!("Private keys: {:?}", private_keys);
+        private_keys.reverse();
         let mut out: Vec<DMatrix<u128>> = Vec::new();
 
         let full_blocks = private_keys.len() / 10;
         let partial_len = private_keys.len() - 10 * full_blocks;
 
+        let mut val = private_keys.pop().expect("u8 value") as u128;
+        let mut acc: Vec<u128> = Vec::new();
+
         for _ in 0..full_blocks
         {
-            //start with the ninth power, move down. Last value should always be one. 
+
+            for i in 0..10
+            {
+                acc.push(val.pow(9 - i) as u128);
+            }
+           out.push(DMatrix::from_vec(10,10, acc.clone()));
+           val = private_keys.pop().expect("u8 value") as u128;
+           acc.clear();
         }
-        //don't forget to do something for the stragglers
+
+        //tiny block
+        println!("Current Key: {}", val);
+        for _ in 0..partial_len
+        {
+            for i in 0..partial_len as u32
+            {
+                acc.push(val.pow((partial_len as u32 - i).try_into().expect("u32")) as u128);
+            } 
+            val = private_keys.pop().expect("u8 val") as u128;   
+            println!("Current Key: {}", val);
+        }
+        out.push(DMatrix::from_vec(partial_len, partial_len, acc));    
+
+
+        println!("***************************************************************************");
+        println!("{:?}", out);
+        println!("***************************************************************************");
         out
     }
 }
