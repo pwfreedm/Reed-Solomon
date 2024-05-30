@@ -9,12 +9,14 @@ mod pub_data;
 fn main() {
     let raw_data = interface::get_text_to_encode();
     let private_keys = generate_x_values (raw_data.len(), 0); 
-    encrypt(&raw_data, &private_keys);
+    encrypt(&raw_data, private_keys.clone());
 }
 
 /** Generates the 'private keys' of the encryption. These are x coordinates of points on a line
  * 
- * Private key values are bounded by i8 for ease of manual checking.
+ * These x coordinates are bounded in the range [1,12) because the highest power any of them will 
+ * be taken to is 9. 11^9 fits into a u32, 12^9 does not. u32 was picked because [1,10) was the minimum
+ * desirable range, to prevent x values from being too homogenized, and a u32 was required for that range.
  */
 fn generate_x_values (length: usize, seed: u64) -> Vec<i8>
 {
@@ -22,8 +24,7 @@ fn generate_x_values (length: usize, seed: u64) -> Vec<i8>
     let mut rng = SmallRng::seed_from_u64(seed);
     for _ in 0..length
     {
-        //single digit numbers to prevent higher powers from going too out of control
-        output.push(rng.gen_range(0..10));
+        output.push(rng.gen_range(1..12));
     }
     output
 }
