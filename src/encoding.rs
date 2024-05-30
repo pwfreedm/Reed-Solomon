@@ -1,4 +1,5 @@
 use nalgebra::{DMatrix, DVector};
+use std::cmp::min;
 pub struct PublicData
 {
     msg: Vec<DVector<u128>>,
@@ -25,7 +26,7 @@ impl PublicData
 
     /** Partitions a message into vectors. These will later be multiplied by a matrix to create the rs encoding.
      * 
-     * NOTE: This method consumes msg_bytes using drain. The unencoded data should not be needed after this point.
+     * NOTE: This method consumes msg_bytes. The unencoded data should not be needed after this point.
      */
     fn fill_msg (msg_bytes: &mut Vec<u8>) -> Vec<DVector<u128>>
     {
@@ -42,47 +43,44 @@ impl PublicData
         out
     }
 
+    /** Fills all coefficient matrices for this file
+     * 
+     * NOTE: Consumes private keys to generate this matrix. They should not be needed after this point.
+     */
     fn fill_coefficient_matrices (private_keys: &mut Vec<u8>) -> Vec<DMatrix<u128>>
     {
-        println!("Private keys: {:?}", private_keys);
         private_keys.reverse();
+        println!("Private Keys: {:?}", private_keys);
+
         let mut out: Vec<DMatrix<u128>> = Vec::new();
 
-        let full_blocks = private_keys.len() / 10;
-        let partial_len = private_keys.len() - 10 * full_blocks;
+        let mut len = private_keys.len();
 
-        let mut val = private_keys.pop().expect("u8 value") as u128;
-        let mut acc: Vec<u128> = Vec::new();
-
-        for _ in 0..full_blocks
+        while len > 0
         {
 
-            for i in 0..10
-            {
-                acc.push(val.pow(9 - i) as u128);
-            }
-           out.push(DMatrix::from_vec(10,10, acc.clone()));
-           val = private_keys.pop().expect("u8 value") as u128;
-           acc.clear();
+            out.push(PublicData::fill_matrix(min(10, len), private_keys));
+            len -= min(10, len);
         }
-
-        //tiny block
-        println!("Current Key: {}", val);
-        for _ in 0..partial_len
-        {
-            for i in 0..partial_len as u32
-            {
-                acc.push(val.pow((partial_len as u32 - i).try_into().expect("u32")) as u128);
-            } 
-            val = private_keys.pop().expect("u8 val") as u128;   
-            println!("Current Key: {}", val);
-        }
-        out.push(DMatrix::from_vec(partial_len, partial_len, acc));    
-
-
-        println!("***************************************************************************");
-        println!("{:?}", out);
-        println!("***************************************************************************");
         out
+    }
+
+    /** Fills a single coefficient matrix given a size.
+     * 
+     * NOTE: Consumes private keys to generate this matrix
+     */
+    fn fill_matrix (size: usize, private_keys: &mut Vec<u8>) -> DMatrix<u128>
+    {
+        let mut data: Vec<u128> = Vec::new();
+        let mut val: u128;
+        for _ in 0..size
+        {
+            val = private_keys.pop().expect("u8 val") as u128;
+            for i in 0..size as u32
+            {
+                data.push(val.pow(size as u32 - i - 1) as u128);
+            }
+        }
+        DMatrix::from_vec(size, size, data)
     }
 }

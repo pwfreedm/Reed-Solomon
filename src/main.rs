@@ -1,5 +1,5 @@
 use encoding::PublicData;
-use rand::rngs::{SmallRng};
+use rand::rngs::SmallRng;
 use rand::{SeedableRng, Rng};
 
 mod interface;
