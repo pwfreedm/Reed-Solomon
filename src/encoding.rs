@@ -4,18 +4,23 @@ pub struct PublicData
     msg: Vec<DVector<u128>>,
     //Vector of coefficient matrices for improved cryptographic security (each block has a unique line)
     //this is a direct trade off of memory for speed. 
-    coefficients: Vec<DMatrix<u32>>
+    coefficients: Vec<DMatrix<u128>>
 }
 
-//1) populate the msg vectors
-//2) calculate coefficient matrices
-//3) overwrite msg vectors with encoded values
 impl PublicData
 {
     pub fn new (msg_bytes: &mut Vec<u8>, private_keys: &Vec<i8>) -> Self
     {        
-        let msg: Vec<DVector<u128>> = PublicData::fill_msg(msg_bytes);
-        
+        let mut msg: Vec<DVector<u128>> = PublicData::fill_msg(msg_bytes);
+        let coefficients: Vec<DMatrix<u128>> = PublicData::fill_coefficient_matrices(private_keys);
+
+        //this is actually encoding the message data
+        for i in 0..msg.len()
+        {
+            //the clones are tragic but the compiler would copy them out anyways, so it doesn't change much alloc wise
+            msg[i] = coefficients[i].clone() * msg[i].clone();
+        }
+        Self {msg: msg, coefficients: coefficients}
     }
 
     /** Partitions a message into vectors. These will later be multiplied by a matrix to create the rs encoding.
@@ -34,6 +39,21 @@ impl PublicData
             out.push(DVector::from_iterator(10, msg_bytes.drain(0..10).map(|n| n as u128)));
         }
         out.push(DVector::from_iterator(partial_len, msg_bytes.drain(0..partial_len).map(|n| n as u128)));
+        out
+    }
+
+    fn fill_coefficient_matrices (private_keys: &Vec<i8>) -> Vec<DMatrix<u128>>
+    {
+        let mut out: Vec<DMatrix<u128>> = Vec::new();
+
+        let full_blocks = private_keys.len() / 10;
+        let partial_len = private_keys.len() - 10 * full_blocks;
+
+        for _ in 0..full_blocks
+        {
+            //start with the ninth power, move down. Last value should always be one. 
+        }
+        //don't forget to do something for the stragglers
         out
     }
 }
