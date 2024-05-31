@@ -9,7 +9,8 @@ pub struct PublicData
 }
 
 impl PublicData
-{
+{   
+    /** Creates a new PublicData instance, encrypting the message and consuming both parameters */
     pub fn new (msg_bytes: &mut Vec<u8>, private_keys: &mut Vec<u8>) -> Self
     {        
         let mut msg: Vec<DVector<u128>> = PublicData::fill_msg(msg_bytes);
@@ -22,6 +23,28 @@ impl PublicData
             msg[i] = coefficients[i].clone() * msg[i].clone();
         }
         Self {msg: msg, coefficients: coefficients}
+    }
+
+    pub fn print_coefficient_matrices (&self)
+    {
+        println!("******************************************************************************************");
+        println!("Coefficient Matrices: ");
+        for v in 0..self.coefficients.len()
+        {
+            println!("{:#}", self.coefficients[v]);
+        }
+        println!("******************************************************************************************");
+    }
+    
+    pub fn print_encoded_message (&self)
+    {
+        println!("******************************************************************************************");
+        println!("Encoded Message: ");
+        for v in 0..self.msg.len()
+        {
+            println!("{:#}", self.msg[v]);
+        }
+        println!("******************************************************************************************");    
     }
 
     /** Partitions a message into vectors. These will later be multiplied by a matrix to create the rs encoding.
@@ -81,6 +104,9 @@ impl PublicData
                 data.push(val.pow(size as u32 - i - 1) as u128);
             }
         }
-        DMatrix::from_vec(size, size, data)
+        
+        let mut out = DMatrix::from_vec(size, size, data);
+        out.transpose_mut();
+        out
     }
 }

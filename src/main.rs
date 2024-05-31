@@ -9,6 +9,8 @@ fn main() {
     let raw_data = interface::get_text_to_encode();
     let private_keys = generate_x_values (raw_data.len(), 0); 
     let encoded = PublicData::new(&mut raw_data.as_bytes().to_vec(), &mut private_keys.clone());
+    encoded.print_encoded_message();
+    encoded.print_coefficient_matrices();
 }
 
 /** Generates the 'private keys' of the encryption. These are x coordinates of points on a line
@@ -27,3 +29,4 @@ fn generate_x_values (length: usize, seed: u64) -> Vec<u8>
     }
     output
 }
+
