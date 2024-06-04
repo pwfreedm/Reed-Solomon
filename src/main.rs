@@ -1,9 +1,9 @@
-use encoding::PublicData;
+use pub_data::PublicData;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
 mod interface;
-mod encoding;
+mod pub_data;
 
 //ensures that each block has unique random x vals that cannot overflow u128
 

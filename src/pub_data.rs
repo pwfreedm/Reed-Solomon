@@ -47,6 +47,16 @@ impl PublicData
         println!("******************************************************************************************");    
     }
 
+    pub fn decrypt(self) -> String
+    {
+        let out: String = String::new();
+        for i in 0..self.msg.len()
+        {
+        }
+
+        "".to_string()
+    }
+
     /** Partitions a message into vectors. These will later be multiplied by a matrix to create the rs encoding.
      * 
      * NOTE: This method consumes msg_bytes. The unencoded data should not be needed after this point.
