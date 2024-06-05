@@ -1,11 +1,12 @@
 use nalgebra::{DMatrix, DVector};
-use std::cmp::min;
+use byteorder::{ByteOrder, LittleEndian};
+use std::{cmp::min, str::from_utf8, vec};
 pub struct PublicData
 {
-    msg: Vec<DVector<u128>>,
+    msg: Vec<DVector<f64>>,
     //Vector of coefficient matrices for improved cryptographic security (each block has a unique line)
     //this is a direct trade off of memory for speed. 
-    coefficients: Vec<DMatrix<u128>>
+    coefficients: Vec<DMatrix<f64>>
 }
 
 impl PublicData
@@ -13,8 +14,8 @@ impl PublicData
     /** Creates a new PublicData instance, encrypting the message and consuming both parameters */
     pub fn new (msg_bytes: &mut Vec<u8>, private_keys: &mut Vec<u8>) -> Self
     {        
-        let mut msg: Vec<DVector<u128>> = PublicData::fill_msg(msg_bytes);
-        let coefficients: Vec<DMatrix<u128>> = PublicData::fill_coefficient_matrices(private_keys);
+        let mut msg: Vec<DVector<f64>> = PublicData::fill_msg(msg_bytes);
+        let coefficients: Vec<DMatrix<f64>> = PublicData::fill_coefficient_matrices(private_keys);
 
         //this is actually encoding the message data
         for i in 0..msg.len()
@@ -49,30 +50,34 @@ impl PublicData
 
     pub fn decrypt(self) -> String
     {
-        let out: String = String::new();
+        let mut out: String = String::new();
         for i in 0..self.msg.len()
         {
+            let sln: &mut DVector<f64> = &mut self.msg[i].clone();
+            self.coefficients[i].clone().lu().solve_mut(sln);
+            let chars: Vec<u8> = sln.try_into(vec);
+            out.push_str(from_utf8(chars).expect("utf-8 string"));
         }
 
-        "".to_string()
+        out
     }
 
     /** Partitions a message into vectors. These will later be multiplied by a matrix to create the rs encoding.
      * 
      * NOTE: This method consumes msg_bytes. The unencoded data should not be needed after this point.
      */
-    fn fill_msg (msg_bytes: &mut Vec<u8>) -> Vec<DVector<u128>>
+    fn fill_msg (msg_bytes: &mut Vec<u8>) -> Vec<DVector<f64>>
     {
-        let mut out: Vec<DVector<u128>> = Vec::new();
+        let mut out: Vec<DVector<f64>> = Vec::new();
 
         let full_blocks = msg_bytes.len() / 10;
         let partial_len = msg_bytes.len() - 10 * full_blocks;
 
         for _ in 0..full_blocks
         {
-            out.push(DVector::from_iterator(10, msg_bytes.drain(0..10).map(|n| n as u128)));
+            out.push(DVector::from_iterator(10, msg_bytes.drain(0..10).map(|n| n as f64)));
         }
-        out.push(DVector::from_iterator(partial_len, msg_bytes.drain(0..partial_len).map(|n| n as u128)));
+        out.push(DVector::from_iterator(partial_len, msg_bytes.drain(0..partial_len).map(|n| n as f64)));
         out
     }
 
@@ -80,12 +85,12 @@ impl PublicData
      * 
      * NOTE: Consumes private keys to generate this matrix. They should not be needed after this point.
      */
-    fn fill_coefficient_matrices (private_keys: &mut Vec<u8>) -> Vec<DMatrix<u128>>
+    fn fill_coefficient_matrices (private_keys: &mut Vec<u8>) -> Vec<DMatrix<f64>>
     {
         private_keys.reverse();
         println!("Private Keys: {:?}", private_keys);
 
-        let mut out: Vec<DMatrix<u128>> = Vec::new();
+        let mut out: Vec<DMatrix<f64>> = Vec::new();
 
         let mut len = private_keys.len();
 
@@ -102,16 +107,16 @@ impl PublicData
      * 
      * NOTE: Consumes private keys to generate this matrix
      */
-    fn fill_matrix (size: usize, private_keys: &mut Vec<u8>) -> DMatrix<u128>
+    fn fill_matrix (size: usize, private_keys: &mut Vec<u8>) -> DMatrix<f64>
     {
-        let mut data: Vec<u128> = Vec::new();
-        let mut val: u128;
+        let mut data: Vec<f64> = Vec::new();
+        let mut val: f64;
         for _ in 0..size
         {
-            val = private_keys.pop().expect("u8 val") as u128;
+            val = private_keys.pop().expect("u8 val") as f64;
             for i in 0..size as u32
             {
-                data.push(val.pow(size as u32 - i - 1) as u128);
+                data.push(val.pow(size as u32 - i - 1) as f64);
             }
         }
         
