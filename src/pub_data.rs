@@ -50,7 +50,7 @@ impl PublicData
     /** Decrypts this instance of public data using the encoded message and the coefficient matrices
      * 
      * The coefficient matrices are effectively the private keys, so in non-educational settings those would 
-     * not be publicly accessible. 
+     * not be publicly accessible, but instead agreed upon by sender and receiver by other means. 
      * 
      * The reason round() is used is because nalgebra's matrix solving methods both only work on fp type matrices
      * and introduce fp rounding errors that throw off the utf-8 decoding
