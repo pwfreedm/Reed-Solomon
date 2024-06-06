@@ -5,9 +5,6 @@ use rand::thread_rng;
 mod interface;
 mod pub_data;
 
-//ensures that each block has unique random x vals that cannot overflow u128
-
-
 fn main() {
     let raw_data = interface::get_text_to_encode();
     let private_keys = generate_x_values (raw_data.len()); 
@@ -20,8 +17,7 @@ fn main() {
 /** Generates the 'private keys' of the encryption. These are x coordinates of points on a line
  * 
  * These x coordinates are bounded in the range [2,12) because the highest power any of them will 
- * be taken to is 9. 11^9 fits into a u32, 12^9 does not. u32 was picked because [1,10) was the minimum
- * desirable range, to prevent x values from being too homogenized, and a u32 was required for that range.
+ * be taken to is 9, and going above 12 risks overflowing when solving the matrix later.
  * 
  * The reasoning behind using the vector is to insure that each block of message has a unique solution.
  */

@@ -1,6 +1,5 @@
 use nalgebra::{DMatrix, DVector};
-use byteorder::{ByteOrder, LittleEndian};
-use std::{cmp::min, str::from_utf8, vec};
+use std::{cmp::min, str::from_utf8};
 pub struct PublicData
 {
     msg: Vec<DVector<f64>>,
@@ -48,6 +47,14 @@ impl PublicData
         println!("******************************************************************************************");    
     }
 
+    /** Decrypts this instance of public data using the encoded message and the coefficient matrices
+     * 
+     * The coefficient matrices are effectively the private keys, so in non-educational settings those would 
+     * not be publicly accessible. 
+     * 
+     * The reason round() is used is because nalgebra's matrix solving methods both only work on fp type matrices
+     * and introduce fp rounding errors that throw off the utf-8 decoding
+     */
     pub fn decrypt(self) -> String
     {
         let mut out: String = String::new();
