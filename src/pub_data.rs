@@ -11,7 +11,7 @@ pub struct PublicData
 impl PublicData
 {   
     /** Creates a new PublicData instance, encrypting the message and consuming both parameters */
-    pub fn new (msg_bytes: &mut Vec<u8>, private_keys: &mut Vec<u8>) -> Self
+    pub fn encrypt (msg_bytes: &mut Vec<u8>, private_keys: &mut Vec<u8>) -> Self
     {        
         let mut msg: Vec<DVector<f64>> = PublicData::fill_msg(msg_bytes);
         let coefficients: Vec<DMatrix<f64>> = PublicData::fill_coefficient_matrices(private_keys);
