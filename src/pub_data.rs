@@ -55,8 +55,8 @@ impl PublicData
         {
             let sln: &mut DVector<f64> = &mut self.msg[i].clone();
             self.coefficients[i].clone().lu().solve_mut(sln);
-            let chars: Vec<u8> = sln.try_into(vec);
-            out.push_str(from_utf8(chars).expect("utf-8 string"));
+            let chars: Vec<u8> = sln.data.as_vec().into_iter().map(|n| n.round() as u8).collect();
+            out.push_str(from_utf8(&chars).expect("utf-8 string"));
         }
 
         out
@@ -88,7 +88,6 @@ impl PublicData
     fn fill_coefficient_matrices (private_keys: &mut Vec<u8>) -> Vec<DMatrix<f64>>
     {
         private_keys.reverse();
-        println!("Private Keys: {:?}", private_keys);
 
         let mut out: Vec<DMatrix<f64>> = Vec::new();
 
@@ -114,9 +113,9 @@ impl PublicData
         for _ in 0..size
         {
             val = private_keys.pop().expect("u8 val") as f64;
-            for i in 0..size as u32
+            for i in 0..size
             {
-                data.push(val.pow(size as u32 - i - 1) as f64);
+                data.push(f64::powi(val, (size - i - 1) as i32) as f64);
             }
         }
         

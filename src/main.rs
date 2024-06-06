@@ -14,6 +14,7 @@ fn main() {
     let encoded = PublicData::new(&mut raw_data.as_bytes().to_vec(), &mut private_keys.clone());
     encoded.print_encoded_message();
     encoded.print_coefficient_matrices();
+    println! ("{}", encoded.decrypt());
 }
 
 /** Generates the 'private keys' of the encryption. These are x coordinates of points on a line
@@ -37,10 +38,7 @@ fn generate_x_values (length: usize) -> Vec<u8>
         x_vals.shuffle(&mut thread_rng());
         out.append(&mut x_vals.clone());
     }
-    println! ("Out after for loop: {:?}", out);
-    println! ("x_vals after for loop: {:?}", x_vals);
     x_vals.shuffle(&mut thread_rng());
-    println! ("Length of x_vals: {}", (*x_vals).len());
     out.append(&mut x_vals[0..partial_seg_size].to_vec());
 
     out
